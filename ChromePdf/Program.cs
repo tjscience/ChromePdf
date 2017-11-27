@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
+using Fizzler.Systems.HtmlAgilityPack;
 
 namespace ChromePdf
 {
@@ -18,6 +20,8 @@ namespace ChromePdf
         static ChromePdfOptions options;
         static bool manualConvert = false;
         static Stopwatch watch;
+        static string domain;
+        static Uri inputUri;
 
         static void Main(string[] args)
         {
@@ -26,7 +30,7 @@ namespace ChromePdf
 
             options = new ChromePdfOptions(args);
 
-            var inputUri = new Uri(options.InputUri);
+            inputUri = new Uri(options.InputUri);
 
             CefSettings settings = new CefSettings
             {
@@ -41,11 +45,13 @@ namespace ChromePdf
 
             if (inputUri.IsFile)
             {
+                domain = "http://localhost:9222";
                 // This is an html file so we need to get the html and manually load it into the browser.
                 html = File.ReadAllText(inputUri.LocalPath);
             }
             else
             {
+                domain = inputUri.AbsoluteUri;
                 html = WebHelper.DownloadString(inputUri.OriginalString);
             }
 
@@ -54,7 +60,6 @@ namespace ChromePdf
 
             browser = new ChromiumWebBrowser();
             browser.RenderProcessMessageHandler = new RenderProcessMessageHandler();
-
             browser.BrowserInitialized += Browser_BrowserInitialized;
             browser.ConsoleMessage += Browser_ConsoleMessage;
             browser.FrameLoadEnd += Browser_FrameLoadEnd;
@@ -104,7 +109,10 @@ namespace ChromePdf
 
         private static void Browser_BrowserInitialized(object sender, EventArgs e)
         {
-            browser.LoadHtml(html, "http://localhost:9222");
+            if (inputUri.IsFile)
+                browser.LoadHtml(html, domain);
+            else
+                browser.Load(inputUri.OriginalString);
 
             if (options.Timeout > 0)
                 watch.Start();
