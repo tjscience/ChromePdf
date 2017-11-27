@@ -1,7 +1,7 @@
 # ChromePdf
 
 ChromePdf is a command line utility that simplifies the process of generating PDFs from HTML. 
-ChromePdf handles this by using CefSharp to render the HTML and generate the PDF. 
+ChromePdf handles this by using [CefSharp](https://github.com/cefsharp/CefSharp) to render the HTML and generate the PDF. 
 As you may know, generating accurate PDFs from HTML from a backend application or even from the command line can be very cumbersome. 
 There are many 3rd party libraries out there but many of them cost money and tend not to be very accurate. 
 There are also some open source libraries, however, I found that many of them were either not complete, no longer being supported, or they 
