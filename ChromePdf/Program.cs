@@ -46,7 +46,7 @@ namespace ChromePdf
             }
             else
             {
-                html = WebHelpers.DownloadString(inputUri.OriginalString);
+                html = WebHelper.DownloadString(inputUri.OriginalString);
             }
 
             if (html.IndexOf("chromePdf.convert()") > -1)
