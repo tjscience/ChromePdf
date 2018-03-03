@@ -83,7 +83,9 @@ Generate a PDF of a local html file:
 chromepdf -i "<path to file>\test.html" -o github.pdf -l -b
 ```
 
+## Dependencies
 
+VC++ Redistributable 2013 - The redistributable package is a required dependency of CefSharp. You can find it [here](https://www.microsoft.com/en-us/download/details.aspx?id=40784).
 
 
 
