@@ -19,6 +19,8 @@ namespace ChromePdf
         static string html;
         static ChromePdfOptions options;
         static bool manualConvert = false;
+        static bool orientationInScript = false;
+        static bool isLandscape = false;
         static Stopwatch watch;
         static string domain;
         static Uri inputUri;
@@ -57,6 +59,17 @@ namespace ChromePdf
 
             if (html.IndexOf("chromePdf.convert()") > -1)
                 manualConvert = true;
+
+            if (html.IndexOf("chromePdf.setOrientation('landscape')", StringComparison.OrdinalIgnoreCase) > -1)
+            {
+                orientationInScript = true;
+                isLandscape = true;
+            }
+            else if (html.IndexOf("chromePdf.setOrientation('portrait')", StringComparison.OrdinalIgnoreCase) > -1)
+            {
+                orientationInScript = true;
+                isLandscape = false;
+            }
 
             browser = new ChromiumWebBrowser();
             browser.RenderProcessMessageHandler = new RenderProcessMessageHandler();
@@ -131,7 +144,7 @@ namespace ChromePdf
                 var settings = new PdfPrintSettings
                 {
                     BackgroundsEnabled = options.EnableBackgrounds,
-                    Landscape = options.IsLandscape,
+                    Landscape = orientationInScript ? isLandscape : options.IsLandscape,
                     MarginType = options.MarginType,
                     HeaderFooterEnabled = options.EnableHeaderFooter,
                     HeaderFooterTitle = options.Title,
