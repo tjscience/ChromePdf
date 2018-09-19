@@ -53,6 +53,9 @@ namespace ChromePdf
         [Option("page-width", DefaultValue = 0, HelpText = "Page width in microns (if 0 paper size is set to A4).")]
         public int PageWidth { get; set; }
 
+        [Option('p', "png", DefaultValue = false, HelpText = "Generate a png image.")]
+        public bool Png { get; set; }
+
         public ChromePdfOptions(string[] args)
         {
             var isValid = Parser.Default.ParseArgumentsStrict(args, this);

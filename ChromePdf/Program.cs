@@ -160,6 +160,14 @@ namespace ChromePdf
                 Thread.Sleep(options.Delay);
 
                 await browser.PrintToPdfAsync(options.Output, settings);
+
+                if (options.Png)
+                {
+                    // generate png
+                    var pngFile = Path.Combine(Path.GetDirectoryName(options.Output), Path.GetFileNameWithoutExtension(options.Output) + ".png");
+                    browser.Bitmap.Save(pngFile, System.Drawing.Imaging.ImageFormat.Png);
+                }
+
                 tokenSource.Cancel();
             });
         }
