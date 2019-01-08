@@ -104,6 +104,8 @@ namespace ChromePdf
             }
             catch { }
 
+            browser.Dispose();
+
             Cef.Shutdown();
         }
 
