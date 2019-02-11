@@ -1,16 +1,18 @@
 ﻿using CefSharp;
 using CefSharp.OffScreen;
+using Ghostscript.NET.Rasterizer;
+using PdfSharp.Pdf;
+using PdfSharp.Pdf.IO;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using HtmlAgilityPack;
-using Fizzler.Systems.HtmlAgilityPack;
 
 namespace ChromePdf
 {
-    class Program
+    public class Program
     {
         static ChromiumWebBrowser browser;
         static Task waitTask;
@@ -40,8 +42,13 @@ namespace ChromePdf
             };
 
             settings.SetOffScreenRenderingBestPerformanceArgs();
+            settings.CefCommandLineArgs.Add("disable-application-cache", "1");
+            settings.CefCommandLineArgs.Add("disable-session-storage", "1");
+            settings.LogSeverity = LogSeverity.Default;
 
             Cef.Initialize(settings);
+            Cef.EnableHighDPISupport();
+            Cef.GetGlobalCookieManager().DeleteCookies();
 
             watch = new Stopwatch();
 
@@ -92,7 +99,6 @@ namespace ChromePdf
                     }
                     else if (watch.IsRunning && watch.ElapsedMilliseconds >= options.Timeout)
                     {
-                        Console.WriteLine("Process timed-out.");
                         tokenSource.Cancel();
                     }
                 }
@@ -105,13 +111,18 @@ namespace ChromePdf
             catch { }
 
             Cef.Shutdown();
+
+            Console.WriteLine("chromepdf finished.");
+
+#if DEBUG
+            Console.ReadKey();
+#endif
         }
 
         private static void Browser_ConsoleMessage(object sender, ConsoleMessageEventArgs e)
         {
             if (e.Message.StartsWith("chrome-pdf-error->"))
             {
-                Console.WriteLine(e.Message);
                 // Cancels process on any javascript error...
                 //tokenSource.Cancel();
             }
@@ -154,18 +165,71 @@ namespace ChromePdf
                     MarginRight = options.MarginRight,
                     MarginTop = options.MarginTop,
                     PageHeight = options.PageHeight,
-                    PageWidth = options.PageWidth
+                    PageWidth = options.PageWidth,
+
                 };
 
                 Thread.Sleep(options.Delay);
 
                 await browser.PrintToPdfAsync(options.Output, settings);
 
+                if (options.RemoveBlankPages)
+                {
+                    if (!Ghostscript.NET.GhostscriptVersionInfo.IsGhostscriptInstalled)
+                    {
+                        Console.WriteLine("To use --remove-blank-pages option, Ghostscript must be installed on the system!");
+                    }
+                    else
+                    {
+                        // remove any blank pages
+                        try
+                        {
+                            List<int> pagesToRemove = new List<int>();
+
+                            using (var rasterizer = new GhostscriptRasterizer())
+                            {
+                                rasterizer.Open(options.Output);
+
+                                for (var pageNumber = 1; pageNumber <= rasterizer.PageCount; pageNumber++)
+                                {
+                                    var img = rasterizer.GetPage(96, 96, pageNumber);
+                                    var bitmap = (System.Drawing.Bitmap)img;
+
+                                    var isBlank = bitmap.IsBlank();
+
+                                    if (isBlank)
+                                    {
+                                        pagesToRemove.Add(pageNumber - 1);
+                                    }
+
+                                }
+                            }
+
+                            // delete the blank pages
+                            using (PdfDocument pdf = PdfReader.Open(options.Output, PdfDocumentOpenMode.Modify))
+                            {
+                                pagesToRemove.Reverse();
+
+                                foreach (var page in pagesToRemove)
+                                {
+                                    pdf.Pages.RemoveAt(page);
+                                }
+
+                                pdf.Save(options.Output);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    }
+                }
+
                 if (options.Png)
                 {
                     // generate png
                     var pngFile = Path.Combine(Path.GetDirectoryName(options.Output), Path.GetFileNameWithoutExtension(options.Output) + ".png");
-                    browser.Bitmap.Save(pngFile, System.Drawing.Imaging.ImageFormat.Png);
+                    browser.ScreenshotOrNull()?.Save(pngFile, System.Drawing.Imaging.ImageFormat.Png);
                 }
 
                 tokenSource.Cancel();

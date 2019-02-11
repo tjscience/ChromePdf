@@ -56,6 +56,9 @@ namespace ChromePdf
         [Option('p', "png", DefaultValue = false, HelpText = "Generate a png image.")]
         public bool Png { get; set; }
 
+        [Option("remove-blank-pages", DefaultValue = false, HelpText = "Removes blank pages from the generated PDF (Ghostscript must be installed!)")]
+        public bool RemoveBlankPages { get; set; }
+
         public ChromePdfOptions(string[] args)
         {
             var isValid = Parser.Default.ParseArgumentsStrict(args, this);

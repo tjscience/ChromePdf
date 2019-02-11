@@ -19,6 +19,11 @@ namespace ChromePdf
 
         }
 
+        public void OnUncaughtException(IWebBrowser browserControl, IBrowser browser, IFrame frame, JavascriptException exception)
+        {
+
+        }
+
         // Wait for the underlying JavaScript Context to be created. This is only called for the main frame.
         // If the page has no JavaScript, no context will be created.
         void IRenderProcessMessageHandler.OnContextCreated(IWebBrowser browserControl, IBrowser browser, IFrame frame)
