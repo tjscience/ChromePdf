@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,6 +30,9 @@ namespace ChromePdf
 
         static void Main(string[] args)
         {
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+
             tokenSource = new CancellationTokenSource();
             token = tokenSource.Token;
 
@@ -44,7 +48,7 @@ namespace ChromePdf
             settings.SetOffScreenRenderingBestPerformanceArgs();
             settings.CefCommandLineArgs.Add("disable-application-cache", "1");
             settings.CefCommandLineArgs.Add("disable-session-storage", "1");
-            settings.LogSeverity = LogSeverity.Default;
+            settings.LogSeverity = (LogSeverity)Enum.Parse(typeof(LogSeverity), ChromePdf.Properties.Settings.Default.LogSeverity, true);
 
             Cef.Initialize(settings);
             Cef.EnableHighDPISupport();
