@@ -3,9 +3,12 @@ using CefSharp.OffScreen;
 using Ghostscript.NET.Rasterizer;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
+using Syncfusion.Pdf;
+using Syncfusion.Pdf.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -179,7 +182,47 @@ namespace ChromePdf
 
                 await browser.PrintToPdfAsync(options.Output, settings);
 
-                if (options.RemoveBlankPages)
+                // Compress
+                //byte[] inputFile = File.ReadAllBytes(options.Output);
+
+                //Load a existing PDF document
+                /*using (PdfLoadedDocument ldoc = new PdfLoadedDocument(inputFile))
+                {
+
+                    //Create a new PDF compression options
+                    PdfCompressionOptions compressOptions = new PdfCompressionOptions();
+                    compressOptions.CompressImages = true;
+                    compressOptions.ImageQuality = 50;
+                    compressOptions.OptimizeFont = true;
+                    compressOptions.OptimizePageContents = true;
+                    compressOptions.RemoveMetadata = true;
+                    ldoc.CompressionOptions = compressOptions;
+                    ldoc.FileStructure.IncrementalUpdate = false;
+
+                    if (options.RemoveBlankPages)
+                    {
+                        int i = 0;
+
+                        while (i < ldoc.Pages.Count)
+                        {
+                            //Extract image from the loaded page 
+                            Image[] img = ldoc.Pages[i].ExtractImages();
+
+                            //Extract text from the existing page
+                            string text = ldoc.Pages[i].ExtractText();
+
+                            //If extracted images and string are empty, then remove the blank page 
+                            if (img.Length == 0 && string.IsNullOrEmpty(text))
+                                ldoc.Pages.RemoveAt(i);
+
+                            i += 1;
+                        }
+                    }
+
+                    ldoc.Save(options.Output);
+                }*/
+
+                /*if (options.RemoveBlankPages)
                 {
                     if (!Ghostscript.NET.GhostscriptVersionInfo.IsGhostscriptInstalled)
                     {
@@ -212,7 +255,7 @@ namespace ChromePdf
                             }
 
                             // delete the blank pages
-                            using (PdfDocument pdf = PdfReader.Open(options.Output, PdfDocumentOpenMode.Modify))
+                            using (PdfSharp.Pdf.PdfDocument pdf = PdfReader.Open(options.Output, PdfDocumentOpenMode.Modify))
                             {
                                 pagesToRemove.Reverse();
 
@@ -223,13 +266,32 @@ namespace ChromePdf
 
                                 pdf.Save(options.Output);
                             }
+
+                            // Compress
+                            byte[] inputFile = File.ReadAllBytes(options.Output);
+
+                            //Load a existing PDF document
+                            using (PdfLoadedDocument ldoc = new PdfLoadedDocument(inputFile))
+                            {
+
+                                //Create a new PDF compression options
+                                PdfCompressionOptions compressOptions = new PdfCompressionOptions();
+                                compressOptions.CompressImages = true;
+                                compressOptions.ImageQuality = 50;
+                                compressOptions.OptimizeFont = true;
+                                compressOptions.OptimizePageContents = true;
+                                compressOptions.RemoveMetadata = true;
+                                ldoc.CompressionOptions = compressOptions;
+                                ldoc.FileStructure.IncrementalUpdate = false;
+
+                                ldoc.Save(options.Output);
+                            }
                         }
                         catch (Exception ex)
                         {
                             Console.WriteLine(ex.Message);
                         }
-                    }
-                }
+                    }*/
 
                 if (options.Png)
                 {
